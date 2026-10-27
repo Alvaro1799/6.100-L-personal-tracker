@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calendario 6.100L</title>
+<style>
+:root{--bg:#f7f6f2;--card:#fff;--tx:#1d1d1b;--mut:#6b6a64;--ac:#2f6f4f;--bd:#e3e1d9;--hi:#e8f3ec;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161715;--card:#202220;--tx:#ecebe5;--mut:#9a9990;--ac:#6fcf9a;--bd:#33362f;--hi:#1f3328;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#161715;--card:#202220;--tx:#ecebe5;--mut:#9a9990;--ac:#6fcf9a;--bd:#33362f;--hi:#1f3328;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:0 0 4px}
+.sub{color:var(--mut);font-size:.9rem;margin:0 0 14px}
+.bar{height:10px;background:var(--bd);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}
+.pc{font-size:.9rem;color:var(--mut);margin:6px 0 14px}
+.rit{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;font-size:.9rem;margin-bottom:14px}
+.rit b{color:var(--ac)}
+.wk{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.wk.now{border-color:var(--ac);background:var(--hi)}
+.wk h2{font-size:1rem;margin:0}
+.wk small{color:var(--mut)}
+label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--bd);margin-top:8px;cursor:pointer}
+label:first-of-type{margin-top:8px}
+input{width:20px;height:20px;margin-top:2px;accent-color:var(--ac);flex:none}
+input:checked+span{color:var(--mut);text-decoration:line-through}
+button{margin:8px 0 24px;background:none;border:1px solid var(--bd);color:var(--mut);border-radius:8px;padding:8px 12px;font:inherit;font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+<h1>6.100L · Calendario</h1>
+<p class="sub">MIT 6.100L, Python y CS · 26 lecciones · ~15 semanas</p>
+<div class="bar"><i id="b"></i></div>
+<p class="pc" id="pc"></p>
+<div class="rit"><b>Ritmo semanal:</b> Lun y Mié video · Mar y Jue ejercicios y notas · Vie repaso (rehacer sin mirar) · Sáb 2 h de pset o ejercicios · Dom descanso. Regla: no avanzas a la siguiente lección sin haber hecho los ejercicios.</div>
+<div id="w"></div>
+<button id="r">Reiniciar progreso</button>
+</main>
+<script>
+var M=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+var W=[[2026,10,26,1,2],[2026,11,2,3,4],[2026,11,9,5,6],[2026,11,16,7,8],[2026,11,23,9,10],[2026,11,30,11,12],[2026,12,7,13,14],[2026,12,14,15,16],
+[2026,12,21,0,0],[2026,12,28,17,18],[2027,1,4,19,20],[2027,1,11,21,22],[2027,1,18,23,24],[2027,1,25,25,26],[2027,2,1,-1,-1]];
+var N={1:"Introducción a Python",17:"Programación orientada a objetos: clases y métodos",18:"POO: métodos dunder",19:"Herencia"};
+function f(d){return d.getDate()+" "+M[d.getMonth()]}
+function lec(n){return "Lección "+n+(N[n]?" · "+N[n]:"")+" (video + finger exercises)"}
+var items=[],st={};
+try{st=JSON.parse(localStorage.getItem("c6100")||"{}")}catch(e){}
+var now=new Date(),h="";
+W.forEach(function(x,i){
+var s=new Date(x[0],x[1]-1,x[2]),e=new Date(s.getTime()+6*864e5);
+var cur=now>=s&&now<new Date(e.getTime()+864e5);
+var t,L;
+if(x[3]===0){t="Semana colchón";L=["Lun–Jue: repasa lecciones 1–16, rehaz 5 ejercicios sin mirar","Vie: ordena tus notas y tu carpeta de código","Descanso de verdad: fiestas de fin de año"]}
+else if(x[3]===-1){t="Cierre";L=["Lun–Mié: repaso general de las 26 lecciones","Jue–Sáb: mini proyecto, un juego de texto con funciones y una clase","Vie: súbelo a GitHub con un README corto"]}
+else{t="Lecciones "+x[3]+" y "+x[4];L=["Lun–Mar: "+lec(x[3]),"Mié–Jue: "+lec(x[4]),"Vie: repaso, rehacer un ejercicio sin mirar","Sáb (2 h): pset o ejercicios de las dos lecciones"]}
+h+='<div class="wk'+(cur?' now':'')+'"><h2>Semana '+(i+1)+' · '+t+(cur?' · ahora':'')+'</h2><small>'+f(s)+' – '+f(e)+'</small>';
+L.forEach(function(q,j){var k="w"+i+"_"+j;items.push(k);h+='<label><input type="checkbox" data-k="'+k+'"'+(st[k]?' checked':'')+'><span>'+q+'</span></label>'});
+h+='</div>'});
+document.getElementById("w").innerHTML=h;
+function up(){var c=0;items.forEach(function(k){if(st[k])c++});
+document.getElementById("b").style.width=(100*c/items.length)+"%";
+document.getElementById("pc").textContent=c+" de "+items.length+" tareas hechas"}
+document.getElementById("w").addEventListener("change",function(e){var k=e.target.getAttribute("data-k");if(!k)return;st[k]=e.target.checked;
+try{localStorage.setItem("c6100",JSON.stringify(st))}catch(x){}up()});
+document.getElementById("r").onclick=function(){if(!confirm("¿Reiniciar todo el progreso?"))return;st={};try{localStorage.removeItem("c6100")}catch(x){}
+document.querySelectorAll("input").forEach(function(i){i.checked=false});up()};
+up();
+</script>
+</body>
+</html>
